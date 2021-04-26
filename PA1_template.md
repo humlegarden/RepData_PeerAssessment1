@@ -4,7 +4,8 @@ output:
   html_document:
     keep_md: true
 ---
-``` {r}
+
+```r
 library(reshape2)
 library(lattice)
 options(digits = 0)
@@ -24,7 +25,8 @@ The data are stored in the file activity.csv, which holds the following variable
 * **interval:** Identifier for the 5-minute interval in which measurement was taken
 in HHMM format
 
-```{r}
+
+```r
 # Load csv data into data frame
 activity <- read.csv("activity.csv")
 
@@ -37,10 +39,21 @@ activity <- dcast(activity, interval ~ date, value.var = "steps")
 # Display initial few days of data collected between midnight and 12:25am 
 head(activity[1:5])
 ```
+
+```
+##   interval 2012-10-01 2012-10-02 2012-10-03 2012-10-04
+## 1        0         NA          0          0         47
+## 2        5         NA          0          0          0
+## 3       10         NA          0          0          0
+## 4       15         NA          0          0          0
+## 5       20         NA          0          0          0
+## 6       25         NA          0          0          0
+```
 <br>
 
 ## What is the mean total number of steps taken per day?
-```{r}
+
+```r
 # Sum all variables (dates) except the first column, 
 # which holds the time intervals
 dailysteps <- colSums(activity[-1])
@@ -53,14 +66,18 @@ hist(dailysteps,
      col = "skyblue2")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
 The mean total number of steps taken per day is: 
-`r mean(dailysteps, na.rm=TRUE)`
-``` {r, eval=FALSE}
+10766
+
+```r
 mean(dailysteps, na.rm=TRUE)
 ```
 The median total number of steps taken per day is: 
-`r median(dailysteps, na.rm=TRUE)`
-``` {r, eval=FALSE}
+10765
+
+```r
 median(dailysteps, na.rm=TRUE)
 ```
 <br>
@@ -70,7 +87,8 @@ Note that intervals are in the format HHMM without leading zeros,
 stored as an integer vector 0, 5, ... 50, 55, 100, 105 ... 2355. Therefore,
 line plots where **interval** is the x-axis show jumps between the "55"'s
 and "00"'s.
-``` {r}
+
+```r
 # Create named vector with average steps per time interval
 intervalsteps <- rowMeans(activity[-1], na.rm=TRUE)
 names(intervalsteps) <- activity$interval
@@ -82,32 +100,47 @@ plot(as.numeric(names(intervalsteps)), intervalsteps,
      type = "l")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
 The time of day which contains on average, the highest number of steps, is
 calculated below:
-``` {r}
+
+```r
 # Find maximum average steps interval and format as a valid time of day
 maxinterval <- as.numeric(names(intervalsteps[which.max(intervalsteps)]))
 paste(maxinterval %/% 100, ":", maxinterval %% 100, sep="")
 ```
+
+```
+## [1] "8:35"
+```
 <br>
 
 ## Imputing missing values  
-The total number of missing values (NA's) is: `r sum(is.na(activity))`
-``` {r, eval=FALSE}
+The total number of missing values (NA's) is: 2304
+
+```r
 sum(is.na(activity))
 ```
 The missing values are entirely contained within eight of the sixty-one days
 measured, each of which returned no data for the entire day:
-``` {r}
+
+```r
 # Prepare boolean vector of dates entirely missing data
 missingdates <- sapply(activity[-1], function(x) {mean(is.na(x)) == 1})
 
 # Print the list of dates with missing data
 names(which(missingdates))
 ```
+
+```
+## [1] "2012-10-01" "2012-10-08" "2012-11-01" "2012-11-04" "2012-11-09"
+## [6] "2012-11-10" "2012-11-14" "2012-11-30"
+```
 The missing values could be reasonably imputed by replacing the columns of
 missing data with the average numbers of steps for each time interval:
-``` {r}
+
+```r
 # Replace data from missing days with average steps for each interval
 activityfilled <- sapply(activity[-1], function(x) {
                                           if (mean(is.na(x)) == 1) 
@@ -123,11 +156,37 @@ activityfilled <- cbind(activity[1], activityfilled)
 # Oct 1 and Oct 8 have been replaced with the mean values
 activityfilled[91:100, 1:9]
 ```
+
+```
+##     interval 2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06
+## 91       730         56          0        145        113        126        170
+## 92       735         44          0         46        181         30         58
+## 93       740         52          0          0         87         19          0
+## 94       745         70          0         44          0          8          0
+## 95       750         58          0        126          0        171         75
+## 96       755         56          0         42          0         68          0
+## 97       800         73          0        138         57        114          0
+## 98       805         68          0         53         99          0        211
+## 99       810        129          0          0        507          9        321
+## 100      815        158          0          0        522        122        149
+##     2012-10-07 2012-10-08
+## 91           0         56
+## 92           0         44
+## 93          43         52
+## 94          40         70
+## 95          19         58
+## 96          74         56
+## 97         121         73
+## 98          73         68
+## 99           0        129
+## 100         27        158
+```
 <br>
 Result is that the new data frame simply reinforces the original data
 (but with higher frequency for the middle bar), since the imputed data
 is based on means:
-```{r}
+
+```r
 # As above
 dailystepsfilled <- colSums(activityfilled[-1])
 hist(dailystepsfilled,
@@ -137,16 +196,19 @@ hist(dailystepsfilled,
      col = "skyblue2")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
 The mean total number of steps taken per day is still: 
-`r mean(dailystepsfilled)`  
+10766  
 The median total number of steps taken per day is still: 
-`r median(dailystepsfilled)`
+10766
 <br><br>
 
 ## Are there differences in activity patterns between weekdays and weekends?
 A vector was created storing the classification of each date by weekend
 or weekday:
-``` {r}
+
+```r
 # Generates character vector with the original dates as names
 daysofweek <- sapply(names(activityfilled[-1]),
                      function(x) {
@@ -157,14 +219,22 @@ daysofweek <- sapply(names(activityfilled[-1]),
                      )
 head(daysofweek)
 ```
+
+```
+## 2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06 
+##  "weekday"  "weekday"  "weekday"  "weekday"  "weekday"  "weekend"
+```
 <br>
 Separate plots of the weekend vs the weekday data by time interval indicate that
 the subject's average number of steps were not much different over the course of
 the day between weekends and weekdays:
-``` {r}
+
+```r
 xyplot(rowMeans(activityfilled[-1]) ~ activityfilled$interval | daysofweek,
        type = "l",
        layout = c(1,2),
        xlab = "Interval",
        ylab = "Number of Steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
